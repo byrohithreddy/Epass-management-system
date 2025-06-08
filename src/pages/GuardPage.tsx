@@ -32,11 +32,11 @@ export default function GuardPage() {
       if (data && data.length > 0) {
         setStudentInfo(data[0]);
       } else {
-        setMessage('No approved leave found for this student today.');
+        setMessage('No approved gatepass found for this student today.');
       }
     } catch (error) {
-      console.error('Error fetching student leave:', error);
-      setMessage('Error validating student leave.');
+      console.error('Error fetching student gatepass:', error);
+      setMessage('Error validating student gatepass.');
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export default function GuardPage() {
         <div className="text-center mb-8">
           <Shield className="h-16 w-16 text-blue-600 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Guard Station</h1>
-          <p className="text-gray-600">Scan Student ID to Validate Leave</p>
+          <p className="text-gray-600">Scan Student ID to Validate Gatepass</p>
         </div>
 
         {!studentInfo && (
@@ -106,7 +106,7 @@ export default function GuardPage() {
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-6">
               <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Valid Leave Found</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Valid Gatepass Found</h2>
             </div>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">

@@ -79,12 +79,12 @@ export default function StudentPage() {
 
       if (error) throw error;
 
-      setMessage('Leave submitted. Please visit the admin office for faster approval.');
+      setMessage('Gatepass submitted. Please visit the admin office for faster approval.');
       setFormData({ section: '', leave_datetime: '', description: '', file: null });
       await fetchLeaveRequests(studentId);
     } catch (error) {
-      console.error('Error submitting leave:', error);
-      setMessage('Error submitting leave request. Please try again.');
+      console.error('Error submitting gatepass:', error);
+      setMessage('Error submitting gatepass request. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -116,7 +116,7 @@ export default function StudentPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Apply for Leave</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Apply for Gatepass</h1>
           <p className="text-gray-600">Scan your student ID to get started</p>
         </div>
 
@@ -128,7 +128,7 @@ export default function StudentPage() {
               className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
             >
               <Calendar className="h-5 w-5" />
-              <span>Start Leave Request</span>
+              <span>Start Gatepass Request</span>
             </button>
           </div>
         )}
@@ -136,7 +136,7 @@ export default function StudentPage() {
         {showForm && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Leave Request Form</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Gatepass Request Form</h2>
               
               {message && (
                 <div className={`mb-4 p-4 rounded-lg border ${
@@ -227,10 +227,10 @@ export default function StudentPage() {
 
             {showStatus && (
               <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">Leave Status</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Gatepass Status</h2>
                 
                 {leaveRequests.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No leave requests found</p>
+                  <p className="text-gray-500 text-center py-4">No gatepass requests found</p>
                 ) : (
                   <div className="space-y-3">
                     {leaveRequests.map((request) => (
@@ -253,7 +253,7 @@ export default function StudentPage() {
                         {request.status === 'Approved' && (
                           <div className="mt-3 p-3 bg-green-100 border border-green-300 rounded-lg">
                             <p className="text-green-800 font-medium text-sm">
-                              ✅ Leave Approved. You may proceed to the gate.
+                              ✅ Gatepass Approved. You may proceed to the gate.
                             </p>
                           </div>
                         )}

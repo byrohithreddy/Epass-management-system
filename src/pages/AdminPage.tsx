@@ -70,7 +70,7 @@ export default function AdminPage() {
       if (error) throw error;
       setLeaveRequests(data || []);
     } catch (error) {
-      console.error('Error fetching leave requests:', error);
+      console.error('Error fetching gatepass requests:', error);
     }
   };
 
@@ -84,10 +84,10 @@ export default function AdminPage() {
       if (error) throw error;
       
       await fetchLeaveRequests();
-      setMessage(`Leave request ${status.toLowerCase()} successfully!`);
+      setMessage(`Gatepass request ${status.toLowerCase()} successfully!`);
     } catch (error) {
-      console.error('Error updating leave status:', error);
-      setMessage('Error updating leave status');
+      console.error('Error updating gatepass status:', error);
+      setMessage('Error updating gatepass status');
     }
   };
 
@@ -177,7 +177,7 @@ export default function AdminPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-1">Manage leave requests</p>
+            <p className="text-gray-600 mt-1">Manage gatepass requests</p>
           </div>
           <button
             onClick={handleLogout}
@@ -202,7 +202,7 @@ export default function AdminPage() {
           {leaveRequests.length === 0 ? (
             <div className="p-8 text-center">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No leave requests to review</p>
+              <p className="text-gray-500">No gatepass requests to review</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
