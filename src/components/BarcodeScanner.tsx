@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { Camera, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { Camera, X, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScanResult: (result: string) => void;
@@ -15,6 +15,8 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [scanResult, setScanResult] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const readerRef = useRef<BrowserMultiFormatReader>();
 
   useEffect(() => {
@@ -43,6 +45,8 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
     
     setIsScanning(false);
     setError('');
+    setScanResult('');
+    setIsProcessing(false);
   };
 
   const initializeCamera = async () => {
@@ -117,10 +121,23 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
         deviceId,
         videoRef.current,
         (result, error) => {
-          if (result) {
-            console.log('Barcode detected:', result.getText());
-            onScanResult(result.getText());
-            onClose();
+          if (result && !isProcessing) {
+            const scannedText = result.getText();
+            console.log('Barcode detected:', scannedText);
+            setScanResult(scannedText);
+            setIsProcessing(true);
+            
+            // Add a small delay to show the result before processing
+            setTimeout(() => {
+              try {
+                onScanResult(scannedText);
+                onClose();
+              } catch (err) {
+                console.error('Error processing scan result:', err);
+                setError('Error processing scan result');
+                setIsProcessing(false);
+              }
+            }, 1000);
           }
           
           if (error && !error.message.includes('No MultiFormat Readers')) {
@@ -163,6 +180,14 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
     }, 500);
   };
 
+  const handleManualInput = () => {
+    const input = prompt('Enter Student ID manually:');
+    if (input && input.trim()) {
+      onScanResult(input.trim());
+      onClose();
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -193,10 +218,18 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
             {/* Scanning overlay */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="border-2 border-white border-dashed rounded-lg w-3/4 h-1/2 flex items-center justify-center">
-                <div className="text-white text-center">
-                  <Camera className="h-8 w-8 mx-auto mb-2 opacity-75" />
-                  <p className="text-sm opacity-75">Position barcode here</p>
-                </div>
+                {scanResult ? (
+                  <div className="text-center text-white">
+                    <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
+                    <p className="text-sm font-medium">Scanned: {scanResult}</p>
+                    <p className="text-xs opacity-75">Processing...</p>
+                  </div>
+                ) : (
+                  <div className="text-white text-center">
+                    <Camera className="h-8 w-8 mx-auto mb-2 opacity-75" />
+                    <p className="text-sm opacity-75">Position barcode here</p>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -228,7 +261,7 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
               {devices.length > 1 && (
                 <button
                   onClick={switchCamera}
-                  disabled={!isScanning}
+                  disabled={!isScanning || isProcessing}
                   className="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
                   <RefreshCw className="h-4 w-4" />
@@ -238,16 +271,27 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
               
               <button
                 onClick={retryScanning}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                disabled={isProcessing}
+                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span>Retry</span>
               </button>
             </div>
             
+            {/* Manual input option */}
+            <button
+              onClick={handleManualInput}
+              disabled={isProcessing}
+              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              Enter ID Manually
+            </button>
+            
             <button
               onClick={onClose}
-              className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+              disabled={isProcessing}
+              className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
@@ -261,6 +305,7 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
               <li>• Ensure good lighting on the barcode</li>
               <li>• Keep the camera 6-12 inches from the barcode</li>
               <li>• Make sure the barcode is not blurry or damaged</li>
+              <li>• Try the "Enter ID Manually" option if scanning fails</li>
             </ul>
           </div>
         </div>

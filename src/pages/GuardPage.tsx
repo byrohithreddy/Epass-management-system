@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, UserCheck, CheckCircle, Camera } from 'lucide-react';
+import { Shield, UserCheck, CheckCircle, Camera, User, AlertCircle } from 'lucide-react';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { supabase, LeaveRequest } from '../lib/supabase';
 
@@ -10,12 +10,15 @@ export default function GuardPage() {
   const [message, setMessage] = useState('');
 
   const handleScanResult = async (scannedId: string) => {
+    console.log('Guard scan result received:', scannedId);
     setLoading(true);
     setMessage('');
     setStudentInfo(null);
 
     try {
       const today = new Date().toISOString().split('T')[0];
+      
+      console.log('Searching for approved leave for student:', scannedId, 'on date:', today);
       
       const { data, error } = await supabase
         .from('leave_requests')
@@ -27,16 +30,22 @@ export default function GuardPage() {
         .order('leave_datetime', { ascending: false })
         .limit(1);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Query result:', data);
 
       if (data && data.length > 0) {
         setStudentInfo(data[0]);
+        setMessage(`Valid gatepass found for student ${scannedId}`);
       } else {
-        setMessage('No approved gatepass found for this student today.');
+        setMessage(`No approved gatepass found for student ${scannedId} today.`);
       }
     } catch (error) {
       console.error('Error fetching student gatepass:', error);
-      setMessage('Error validating student gatepass.');
+      setMessage('Error validating student gatepass. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,6 +58,8 @@ export default function GuardPage() {
     setMessage('');
 
     try {
+      console.log('Logging check-out for student:', studentInfo.student_id);
+      
       const { error } = await supabase
         .from('check_logs')
         .insert({
@@ -57,16 +68,27 @@ export default function GuardPage() {
           action: 'Checked Out',
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Check-out error:', error);
+        throw error;
+      }
 
       setMessage('Check-out logged successfully.');
       setStudentInfo(null);
+      
+      // Clear message after a few seconds
+      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       console.error('Error logging check-out:', error);
-      setMessage('Error logging check-out.');
+      setMessage('Error logging check-out. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetScanner = () => {
+    setStudentInfo(null);
+    setMessage('');
   };
 
   return (
@@ -78,27 +100,41 @@ export default function GuardPage() {
           <p className="text-gray-600">Scan Student ID to Validate Gatepass</p>
         </div>
 
+        {/* Global message display */}
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg border ${
+            message.includes('Error') || message.includes('No approved')
+              ? 'bg-red-50 text-red-700 border-red-200'
+              : 'bg-green-50 text-green-700 border-green-200'
+          }`}>
+            <div className="flex items-center space-x-2">
+              {message.includes('Error') || message.includes('No approved') ? (
+                <AlertCircle className="h-5 w-5" />
+              ) : (
+                <CheckCircle className="h-5 w-5" />
+              )}
+              <span>{message}</span>
+            </div>
+          </div>
+        )}
+
         {!studentInfo && (
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <Camera className="h-16 w-16 text-gray-400 mx-auto mb-6" />
-            <button
-              onClick={() => setShowScanner(true)}
-              disabled={loading}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <UserCheck className="h-5 w-5" />
-              <span>{loading ? 'Validating...' : 'Scan Student ID'}</span>
-            </button>
-
-            {message && (
-              <div className={`mt-6 p-4 rounded-lg ${
-                message.includes('Error') || message.includes('No approved')
-                  ? 'bg-red-50 text-red-700 border border-red-200'
-                  : 'bg-green-50 text-green-700 border border-green-200'
-              }`}>
-                {message}
-              </div>
-            )}
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowScanner(true)}
+                disabled={loading}
+                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+              >
+                <UserCheck className="h-5 w-5" />
+                <span>{loading ? 'Validating...' : 'Scan Student ID'}</span>
+              </button>
+              
+              <p className="text-gray-500 text-sm">
+                Position the student's ID barcode in front of the camera
+              </p>
+            </div>
           </div>
         )}
 
@@ -153,34 +189,21 @@ export default function GuardPage() {
               </div>
             </div>
 
-            {message && (
-              <div className={`mb-4 p-4 rounded-lg ${
-                message.includes('Error')
-                  ? 'bg-red-50 text-red-700 border border-red-200'
-                  : 'bg-green-50 text-green-700 border border-green-200'
-              }`}>
-                {message}
-              </div>
-            )}
-
             <div className="flex space-x-4">
               <button
                 onClick={handleCheckOut}
                 disabled={loading}
-                className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center space-x-2"
+                className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
               >
                 <CheckCircle className="h-5 w-5" />
                 <span>{loading ? 'Processing...' : 'Check-Out Student'}</span>
               </button>
               
               <button
-                onClick={() => {
-                  setStudentInfo(null);
-                  setMessage('');
-                }}
+                onClick={resetScanner}
                 className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors"
               >
-                Cancel
+                Scan Another
               </button>
             </div>
           </div>
