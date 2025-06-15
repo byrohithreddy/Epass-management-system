@@ -30,17 +30,31 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
   }, [isOpen]);
 
   const cleanup = () => {
+    console.log('Cleaning up camera resources...');
+    
+    // Stop the barcode reader
     if (readerRef.current) {
       try {
         readerRef.current.reset();
+        readerRef.current = undefined;
       } catch (err) {
         console.log('Reader cleanup error:', err);
       }
     }
     
+    // Stop all video tracks
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      console.log('Stopping camera stream...');
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log('Stopped track:', track.kind, track.label);
+      });
       setStream(null);
+    }
+    
+    // Clear video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
     
     setIsScanning(false);
@@ -87,9 +101,10 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
       setIsScanning(true);
       setError('');
 
-      // Stop existing stream
+      // Stop existing stream first
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+        setStream(null);
       }
 
       // Request camera with specific constraints
@@ -126,6 +141,16 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
             console.log('Barcode detected:', scannedText);
             setScanResult(scannedText);
             setIsProcessing(true);
+            
+            // Stop scanning immediately after successful scan
+            if (readerRef.current) {
+              readerRef.current.reset();
+            }
+            
+            // Stop camera stream
+            if (stream) {
+              stream.getTracks().forEach(track => track.stop());
+            }
             
             // Add a small delay to show the result before processing
             setTimeout(() => {
@@ -183,9 +208,17 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
   const handleManualInput = () => {
     const input = prompt('Enter Student ID manually:');
     if (input && input.trim()) {
+      // Clean up camera before closing
+      cleanup();
       onScanResult(input.trim());
       onClose();
     }
+  };
+
+  const handleClose = () => {
+    // Ensure cleanup happens before closing
+    cleanup();
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -197,7 +230,7 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-white">Scan Student ID</h3>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="text-white hover:text-gray-200 transition-colors p-1"
             >
               <X className="h-6 w-6" />
@@ -289,7 +322,7 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
             </button>
             
             <button
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isProcessing}
               className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors disabled:opacity-50"
             >
