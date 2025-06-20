@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, LogOut, Check, X, Calendar, User } from 'lucide-react';
+import { Shield, LogOut, Check, X, Calendar, User, BarChart3, Clock, Edit3, Save } from 'lucide-react';
 import { supabase, LeaveRequest } from '../lib/supabase';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'analytics'>('dashboard');
   const [loading, setLoading] = useState(false);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loginLoading, setLoginLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [editingRequest, setEditingRequest] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    approved_return_datetime: '',
+    admin_notes: ''
+  });
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && currentView === 'dashboard') {
       fetchLeaveRequests();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentView]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,9 +48,11 @@ export default function AdminPage() {
 
   const handleLogout = async () => {
     setIsAuthenticated(false);
+    setCurrentView('dashboard');
     setLeaveRequests([]);
     setLoginForm({ email: '', password: '' });
     setMessage('');
+    setEditingRequest(null);
   };
 
   const fetchLeaveRequests = async () => {
@@ -66,15 +75,29 @@ export default function AdminPage() {
 
   const updateLeaveStatus = async (id: string, status: 'Approved' | 'Rejected') => {
     try {
+      const updateData: any = { status };
+      
+      // If editing, include the additional fields
+      if (editingRequest === id) {
+        if (editForm.approved_return_datetime) {
+          updateData.approved_return_datetime = editForm.approved_return_datetime;
+        }
+        if (editForm.admin_notes) {
+          updateData.admin_notes = editForm.admin_notes;
+        }
+      }
+
       const { error } = await supabase
         .from('leave_requests')
-        .update({ status })
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;
       
       await fetchLeaveRequests();
       setMessage(`Gatepass request ${status.toLowerCase()} successfully!`);
+      setEditingRequest(null);
+      setEditForm({ approved_return_datetime: '', admin_notes: '' });
       
       // Clear message after 3 seconds
       setTimeout(() => setMessage(''), 3000);
@@ -84,6 +107,19 @@ export default function AdminPage() {
     }
   };
 
+  const startEditing = (request: LeaveRequest) => {
+    setEditingRequest(request.id);
+    setEditForm({
+      approved_return_datetime: request.approved_return_datetime || request.return_datetime || '',
+      admin_notes: request.admin_notes || ''
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingRequest(null);
+    setEditForm({ approved_return_datetime: '', admin_notes: '' });
+  };
+
   const getStatusBadge = (status: string) => {
     const baseClasses = "px-3 py-1 rounded-full text-xs font-medium";
     switch (status) {
@@ -91,9 +127,19 @@ export default function AdminPage() {
         return `${baseClasses} bg-green-100 text-green-800`;
       case 'Rejected':
         return `${baseClasses} bg-red-100 text-red-800`;
+      case 'Returned':
+        return `${baseClasses} bg-blue-100 text-blue-800`;
       default:
         return `${baseClasses} bg-yellow-100 text-yellow-800`;
     }
+  };
+
+  const getPendingDays = (submittedAt: string) => {
+    const submitted = new Date(submittedAt);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - submitted.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   if (!isAuthenticated) {
@@ -175,6 +221,10 @@ export default function AdminPage() {
     );
   }
 
+  if (currentView === 'analytics') {
+    return <AnalyticsDashboard onBack={() => setCurrentView('dashboard')} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
@@ -183,13 +233,22 @@ export default function AdminPage() {
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <p className="text-gray-600 mt-1">Manage E-Gatepass requests</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-md hover:shadow-lg"
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setCurrentView('analytics')}
+              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg"
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Analytics</span>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-md hover:shadow-lg"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
 
         {message && (
@@ -226,6 +285,9 @@ export default function AdminPage() {
                       Leave Information
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Return Time
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -234,71 +296,162 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {leaveRequests.map((request) => (
-                    <tr key={request.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center">
-                          <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                            <User className="h-5 w-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {request.student_id}
+                  {leaveRequests.map((request) => {
+                    const pendingDays = getPendingDays(request.submitted_at);
+                    const isEditing = editingRequest === request.id;
+                    
+                    return (
+                      <tr key={request.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                              <User className="h-5 w-5 text-blue-600" />
                             </div>
-                            <div className="text-sm text-gray-500">
-                              Section: {request.section}
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {request.student_id}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {request.section} | {request.department}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">
-                          <div className="font-medium mb-1">
-                            {new Date(request.leave_datetime).toLocaleDateString()} at{' '}
-                            {new Date(request.leave_datetime).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">
+                            <div className="font-medium mb-1">
+                              {new Date(request.leave_datetime).toLocaleDateString()} at{' '}
+                              {new Date(request.leave_datetime).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                            <div className="text-gray-600 max-w-xs truncate">
+                              {request.description}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1 flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Submitted: {new Date(request.submitted_at).toLocaleDateString()}
+                              {request.status === 'Pending' && pendingDays > 0 && (
+                                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                                  pendingDays > 2 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {pendingDays}d pending
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-gray-600 max-w-xs truncate">
-                            {request.description}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            Submitted: {new Date(request.submitted_at).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={getStatusBadge(request.status)}>
-                          {request.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {request.status === 'Pending' ? (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => updateLeaveStatus(request.id, 'Approved')}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors shadow-sm hover:shadow-md"
-                            >
-                              <Check className="h-3 w-3 mr-1" />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => updateLeaveStatus(request.id, 'Rejected')}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm hover:shadow-md"
-                            >
-                              <X className="h-3 w-3 mr-1" />
-                              Reject
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 text-xs">
-                            {request.status === 'Approved' ? '✅ Approved' : '❌ Rejected'}
+                        </td>
+                        <td className="px-6 py-4">
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <input
+                                type="datetime-local"
+                                value={editForm.approved_return_datetime}
+                                onChange={(e) => setEditForm({ ...editForm, approved_return_datetime: e.target.value })}
+                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                              />
+                              <textarea
+                                value={editForm.admin_notes}
+                                onChange={(e) => setEditForm({ ...editForm, admin_notes: e.target.value })}
+                                placeholder="Admin notes..."
+                                rows={2}
+                                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                          ) : (
+                            <div className="text-sm">
+                              {request.return_datetime && (
+                                <div className="text-gray-600">
+                                  <span className="font-medium">Expected:</span><br />
+                                  {new Date(request.return_datetime).toLocaleString()}
+                                </div>
+                              )}
+                              {request.approved_return_datetime && (
+                                <div className="text-blue-600 mt-1">
+                                  <span className="font-medium">Approved:</span><br />
+                                  {new Date(request.approved_return_datetime).toLocaleString()}
+                                </div>
+                              )}
+                              {request.admin_notes && (
+                                <div className="text-gray-500 text-xs mt-1 p-2 bg-gray-50 rounded">
+                                  {request.admin_notes}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={getStatusBadge(request.status)}>
+                            {request.status}
                           </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          {request.status === 'Pending' ? (
+                            <div className="flex flex-col space-y-2">
+                              {!isEditing ? (
+                                <>
+                                  <button
+                                    onClick={() => startEditing(request)}
+                                    className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                                  >
+                                    <Edit3 className="h-3 w-3 mr-1" />
+                                    Edit
+                                  </button>
+                                  <div className="flex space-x-1">
+                                    <button
+                                      onClick={() => updateLeaveStatus(request.id, 'Approved')}
+                                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors"
+                                    >
+                                      <Check className="h-3 w-3 mr-1" />
+                                      Approve
+                                    </button>
+                                    <button
+                                      onClick={() => updateLeaveStatus(request.id, 'Rejected')}
+                                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
+                                    >
+                                      <X className="h-3 w-3 mr-1" />
+                                      Reject
+                                    </button>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="flex flex-col space-y-1">
+                                  <div className="flex space-x-1">
+                                    <button
+                                      onClick={() => updateLeaveStatus(request.id, 'Approved')}
+                                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors"
+                                    >
+                                      <Save className="h-3 w-3 mr-1" />
+                                      Save & Approve
+                                    </button>
+                                    <button
+                                      onClick={() => updateLeaveStatus(request.id, 'Rejected')}
+                                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
+                                    >
+                                      <X className="h-3 w-3 mr-1" />
+                                      Reject
+                                    </button>
+                                  </div>
+                                  <button
+                                    onClick={cancelEditing}
+                                    className="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">
+                              {request.status === 'Approved' ? '✅ Approved' : 
+                               request.status === 'Rejected' ? '❌ Rejected' : '🔄 Returned'}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

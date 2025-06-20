@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, FileText, Upload, Check, Clock, X, User } from 'lucide-react';
+import { Calendar, FileText, Upload, Check, Clock, X, User, ArrowRight } from 'lucide-react';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { supabase, LeaveRequest } from '../lib/supabase';
 
@@ -14,7 +14,9 @@ export default function StudentPage() {
   
   const [formData, setFormData] = useState({
     section: '',
+    department: '',
     leave_datetime: '',
+    return_datetime: '',
     description: '',
     file: null as File | null,
   });
@@ -72,6 +74,18 @@ export default function StudentPage() {
     try {
       console.log('Submitting leave request for:', studentId);
       
+      // Validate return time is after leave time
+      if (formData.return_datetime && formData.leave_datetime) {
+        const leaveTime = new Date(formData.leave_datetime);
+        const returnTime = new Date(formData.return_datetime);
+        
+        if (returnTime <= leaveTime) {
+          setMessage('Return time must be after leave time.');
+          setLoading(false);
+          return;
+        }
+      }
+      
       let fileUrl = '';
       
       if (formData.file) {
@@ -97,7 +111,9 @@ export default function StudentPage() {
         .insert({
           student_id: studentId,
           section: formData.section,
+          department: formData.department,
           leave_datetime: formData.leave_datetime,
+          return_datetime: formData.return_datetime || null,
           description: formData.description,
           file_url: fileUrl || null,
         });
@@ -108,7 +124,14 @@ export default function StudentPage() {
       }
 
       setMessage('Gatepass submitted successfully! Please visit the admin office for faster approval.');
-      setFormData({ section: '', leave_datetime: '', description: '', file: null });
+      setFormData({ 
+        section: '', 
+        department: '',
+        leave_datetime: '', 
+        return_datetime: '',
+        description: '', 
+        file: null 
+      });
       await fetchLeaveRequests(studentId);
     } catch (error) {
       console.error('Error submitting gatepass:', error);
@@ -124,7 +147,14 @@ export default function StudentPage() {
     setShowStatus(false);
     setLeaveRequests([]);
     setMessage('');
-    setFormData({ section: '', leave_datetime: '', description: '', file: null });
+    setFormData({ 
+      section: '', 
+      department: '',
+      leave_datetime: '', 
+      return_datetime: '',
+      description: '', 
+      file: null 
+    });
   };
 
   const getStatusIcon = (status: string) => {
@@ -133,6 +163,8 @@ export default function StudentPage() {
         return <Check className="h-5 w-5 text-green-600" />;
       case 'Rejected':
         return <X className="h-5 w-5 text-red-600" />;
+      case 'Returned':
+        return <ArrowRight className="h-5 w-5 text-blue-600" />;
       default:
         return <Clock className="h-5 w-5 text-yellow-600" />;
     }
@@ -144,10 +176,25 @@ export default function StudentPage() {
         return 'text-green-700 bg-green-50 border-green-200';
       case 'Rejected':
         return 'text-red-700 bg-red-50 border-red-200';
+      case 'Returned':
+        return 'text-blue-700 bg-blue-50 border-blue-200';
       default:
         return 'text-yellow-700 bg-yellow-50 border-yellow-200';
     }
   };
+
+  const departments = [
+    'Computer Science Engineering',
+    'Electronics & Communication Engineering',
+    'Mechanical Engineering',
+    'Civil Engineering',
+    'Electrical Engineering',
+    'Information Technology',
+    'Chemical Engineering',
+    'Biotechnology',
+    'Aerospace Engineering',
+    'Other'
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -230,31 +277,65 @@ export default function StudentPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Section
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.section}
-                    onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., CSE-A, ECE-B"
-                    required
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Section
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.section}
+                      onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g., CSE-A, ECE-B"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Department
+                    </label>
+                    <select
+                      value={formData.department}
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    >
+                      <option value="">Select Department</option>
+                      {departments.map((dept) => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Leave Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.leave_datetime}
-                    onChange={(e) => setFormData({ ...formData, leave_datetime: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Leave Date & Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.leave_datetime}
+                      onChange={(e) => setFormData({ ...formData, leave_datetime: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Expected Return Time
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.return_datetime}
+                      onChange={(e) => setFormData({ ...formData, return_datetime: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Admin may modify this time</p>
+                  </div>
                 </div>
 
                 <div>
@@ -330,7 +411,24 @@ export default function StudentPage() {
                           </span>
                         </div>
                         <p className="text-sm mb-1">{request.description}</p>
-                        <p className="text-xs">Section: {request.section}</p>
+                        <p className="text-xs">Section: {request.section} | Dept: {request.department}</p>
+                        
+                        {request.return_datetime && (
+                          <div className="mt-2 text-xs">
+                            <span className="font-medium">Expected Return:</span> {new Date(request.return_datetime).toLocaleString()}
+                            {request.approved_return_datetime && (
+                              <div className="text-blue-600 mt-1">
+                                <span className="font-medium">Admin Approved Return:</span> {new Date(request.approved_return_datetime).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {request.admin_notes && (
+                          <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                            <span className="font-medium">Admin Notes:</span> {request.admin_notes}
+                          </div>
+                        )}
                         
                         {request.status === 'Approved' && (
                           <div className="mt-3 p-3 bg-green-100 border border-green-300 rounded-lg">
