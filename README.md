@@ -127,4 +127,5 @@ This project is for **internal institutional use only**. It is not open source a
 
 ## 🗺️ Support & Maintenance
 
-For internal usage, please contact the system administrator or project manager assigned to the deployment.
+For internal usage, please Contact: [rohith2005hyd+work@gmail.com](mailto:rohith2005hyd+work@example.com)
+
