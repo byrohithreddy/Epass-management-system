@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, FileText, Upload, Check, Clock, X, User, ArrowRight } from 'lucide-react';
+import { Calendar, FileText, Upload, Check, Clock, X, User, ArrowRight, Mail } from 'lucide-react';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { supabase, LeaveRequest } from '../lib/supabase';
+import { sendLeaveRequestNotification } from '../lib/emailService';
 
 export default function StudentPage() {
   const [showScanner, setShowScanner] = useState(false);
@@ -10,6 +11,7 @@ export default function StudentPage() {
   const [showStatus, setShowStatus] = useState(false);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [message, setMessage] = useState('');
   
   const [formData, setFormData] = useState({
@@ -123,7 +125,33 @@ export default function StudentPage() {
         throw error;
       }
 
-      setMessage('Gatepass submitted successfully! Please visit the admin office for faster approval.');
+      // Send email notification
+      setSendingEmail(true);
+      try {
+        const emailData = {
+          student_id: studentId,
+          section: formData.section,
+          department: formData.department,
+          leave_datetime: formData.leave_datetime,
+          return_datetime: formData.return_datetime,
+          description: formData.description,
+          submitted_at: new Date().toISOString(),
+        };
+
+        const emailSent = await sendLeaveRequestNotification(emailData);
+        
+        if (emailSent) {
+          setMessage('✅ Gatepass submitted successfully! 📧 Email notification sent to admin. Please visit the admin office for faster approval.');
+        } else {
+          setMessage('✅ Gatepass submitted successfully! ❌ Email notification failed. Please visit the admin office for faster approval.');
+        }
+      } catch (emailError) {
+        console.error('Email notification error:', emailError);
+        setMessage('✅ Gatepass submitted successfully! ❌ Email notification failed. Please visit the admin office for faster approval.');
+      } finally {
+        setSendingEmail(false);
+      }
+
       setFormData({ 
         section: '', 
         department: '',
@@ -369,13 +397,18 @@ export default function StudentPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || sendingEmail}
                   className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       <span>Submitting...</span>
+                    </div>
+                  ) : sendingEmail ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <Mail className="h-4 w-4 animate-pulse" />
+                      <span>Sending Email Notification...</span>
                     </div>
                   ) : (
                     'Submit Request'

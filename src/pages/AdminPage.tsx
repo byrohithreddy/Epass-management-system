@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shield, LogOut, Check, X, Calendar, User, BarChart3, Clock, Edit3, Save } from 'lucide-react';
 import { supabase, LeaveRequest } from '../lib/supabase';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
+import EmailDebug from '../components/EmailDebug';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -151,7 +152,7 @@ export default function AdminPage() {
               <Shield className="h-8 w-8 text-blue-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
-            <p className="text-gray-600 mt-2">Access the E-Gatepass dashboard</p>
+            <p className="text-gray-600 mt-2">Access the GATE-BOT dashboard</p>
           </div>
 
           {message && (
@@ -231,7 +232,7 @@ export default function AdminPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-1">Manage E-Gatepass requests</p>
+            <p className="text-gray-600 mt-1">Manage GATE-BOT requests</p>
           </div>
           <div className="flex items-center space-x-4">
             <button
@@ -260,6 +261,11 @@ export default function AdminPage() {
             {message}
           </div>
         )}
+
+        {/* Email Debug Component */}
+        <div className="mb-6">
+          <EmailDebug />
+        </div>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
           {loading ? (
