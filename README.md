@@ -293,6 +293,26 @@ Epass-management-system/
 
 ---
 
-## 🪪 License
+## 🔒 License & Intellectual Property
 
-No `LICENSE` file is currently included in this repository. The applicable reuse and redistribution terms have not been specified here; do not assume that the project is open source. Add an explicit license or contact the project owner before reusing or redistributing the code. Third-party dependencies remain subject to their respective licenses.
+**Copyright © 2026 Mushke Rohith Reddy. All Rights Reserved.**
+
+### PROPRIETARY AND CONFIDENTIAL
+
+This software, including all source code, documentation, designs, database schemas, interfaces, and intellectual property associated with **E-Gatepass**, is strictly proprietary and the exclusive property of **Mushke Rohith Reddy**.
+
+#### Terms & Usage Restrictions
+
+1. **No Unauthorized Use:** You may **not** copy, modify, distribute, reproduce, sublicense, publish, sell, host, mirror, or commercially exploit this software or any portion of its code without explicit, prior written authorization and licensing from the copyright holder.
+2. **No Free or Public Distribution:** This project is **not** open-source software and is **not** provided under MIT, Apache, GPL, or any other public/copyleft license. No individual or entity is permitted to deploy, fork, or use this application without a verified license agreement.
+3. **No Reverse Engineering:** Reverse engineering, decompiling, extracting, or repurposing proprietary application logic and workflows from this project is prohibited without authorization.
+
+For licensing inquiries, institutional deployments, or commercial partnerships, please contact: 📧 **[rohith2005hyd@gmail.com](mailto:rohith2005hyd@gmail.com)**
+
+Third-party dependencies and services remain subject to their respective licenses and terms.
+
+<div align="center">
+
+Designed & Architected by **Mushke Rohith Reddy**
+
+</div>
