@@ -21,9 +21,14 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
-      {renderPage()}
+      <main id="main-content" className="workspace-frame" tabIndex={-1}>
+        <div key={currentPage} className="page-transition">
+          {renderPage()}
+        </div>
+      </main>
     </div>
   );
 }

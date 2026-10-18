@@ -5,23 +5,32 @@ import {
   Users, 
   Clock, 
   CheckCircle, 
-  XCircle, 
   AlertTriangle,
-  Calendar,
   Building,
   ArrowUp,
   ArrowDown,
   Activity
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { supabase, AnalyticsData } from '../lib/supabase';
 
 interface AnalyticsDashboardProps {
   onBack: () => void;
 }
 
+interface StatCardProps {
+  title: string;
+  value: number;
+  icon: LucideIcon;
+  color: string;
+  subtitle?: string;
+  trend?: number;
+}
+
 export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'all'>('all');
 
   useEffect(() => {
@@ -30,6 +39,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
 
   const fetchAnalytics = async () => {
     setLoading(true);
+    setErrorMessage('');
     try {
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -158,17 +168,18 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
 
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      setErrorMessage('Analytics are unavailable right now. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, subtitle, trend }: any) => (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow">
+  const StatCard = ({ title, value, icon: Icon, color, subtitle, trend }: StatCardProps) => (
+    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 metric-card">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className={`text-3xl font-bold ${color} mt-2`}>{value}</p>
+          <p className={`text-3xl font-bold ${color} mt-2 metric-number`}>{value}</p>
           {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
         </div>
         <div className={`p-3 rounded-full ${color.replace('text-', 'bg-').replace('-600', '-100')}`}>
@@ -192,10 +203,11 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="page-view page-view--analytics">
+        <div className="page-container">
+          <div className="analytics-loading" role="status" aria-live="polite">
+            <div className="loading-marker" aria-hidden="true" />
+            <p>Loading analytics…</p>
           </div>
         </div>
       </div>
@@ -204,10 +216,14 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
 
   if (!analytics) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center">
-            <p className="text-gray-500">Failed to load analytics data</p>
+      <div className="page-view page-view--analytics">
+        <div className="page-container">
+          <div className="analytics-error" role="alert">
+            <h1>Analytics unavailable</h1>
+            <p>{errorMessage || 'The analytics data could not be loaded.'}</p>
+            <button type="button" className="primary-action" onClick={fetchAnalytics}>
+              Try again
+            </button>
           </div>
         </div>
       </div>
@@ -215,18 +231,19 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
+    <div className="page-view page-view--analytics">
+      <div className="page-container">
+        <div className="page-heading">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-gray-600 mt-1">Comprehensive insights into gatepass system</p>
+            <h1>Analytics dashboard</h1>
+            <p>Requests, decisions, and student check-outs.</p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="heading-actions">
             <select
               value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value as any)}
+              onChange={(e) => setDateFilter(e.target.value as 'today' | 'week' | 'all')}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter analytics period"
             >
               <option value="today">Today</option>
               <option value="week">This Week</option>
@@ -234,7 +251,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
             </select>
             <button
               onClick={onBack}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+              className="secondary-action"
             >
               Back to Admin
             </button>
@@ -242,7 +259,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 analytics-stats">
           <StatCard
             title="Total Requests"
             value={analytics.totalRequests}
@@ -258,7 +275,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
             subtitle={`${analytics.pendingAging.overOneDay} over 1 day`}
           />
           <StatCard
-            title="Approved Today"
+            title="Approved requests"
             value={analytics.statusBreakdown.approved}
             icon={CheckCircle}
             color="text-green-600"
@@ -273,8 +290,8 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
         </div>
 
         {/* Status Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 analytics-panels">
+          <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 analytics-panel">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
               Status Breakdown
@@ -303,9 +320,9 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 analytics-panel">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <AlertTriangle className="h-5 w-5 mr-2 text-orange-600" />
               Pending Requests Aging
@@ -330,12 +347,12 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
                 </span>
               </div>
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Department Stats and Daily Trends */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 analytics-panels">
+          <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 analytics-panel">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Building className="h-5 w-5 mr-2 text-indigo-600" />
               Requests by Department
@@ -355,9 +372,9 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 analytics-panel">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
               Daily Trends (Last 7 Days)
@@ -373,8 +390,8 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
                     <div className="flex-1 mx-3">
                       <div className="bg-gray-200 rounded-full h-2">
                         <div 
-                          className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${width}%` }}
+                          className="bg-green-500 h-2 rounded-full transition-transform duration-500 analytics-bar-fill"
+                          style={{ transform: `scaleX(${width / 100})` }}
                         ></div>
                       </div>
                     </div>
@@ -383,11 +400,11 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
                 );
               })}
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Top Applicants */}
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 analytics-panel">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <Users className="h-5 w-5 mr-2 text-purple-600" />
             Top Applicants
@@ -422,7 +439,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

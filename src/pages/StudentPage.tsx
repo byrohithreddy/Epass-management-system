@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Calendar, FileText, Upload, Check, Clock, X, User, ArrowRight } from 'lucide-react';
 import BarcodeScanner from '../components/BarcodeScanner';
+import RequestRoute from '../components/RequestRoute';
 import { supabase, LeaveRequest } from '../lib/supabase';
 
 export default function StudentPage() {
@@ -170,19 +171,6 @@ export default function StudentPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Approved':
-        return 'text-green-700 bg-green-50 border-green-200';
-      case 'Rejected':
-        return 'text-red-700 bg-red-50 border-red-200';
-      case 'Returned':
-        return 'text-blue-700 bg-blue-50 border-blue-200';
-      default:
-        return 'text-yellow-700 bg-yellow-50 border-yellow-200';
-    }
-  };
-
   const departments = [
     'Computer Science Engineering',
     'Electronics & Communication Engineering',
@@ -197,11 +185,13 @@ export default function StudentPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Apply for Gatepass</h1>
-          <p className="text-gray-600">Scan your student ID to get started</p>
+    <div className="page-view page-view--student">
+      <div className="page-container">
+        <div className="page-heading">
+          <div>
+            <h1>Apply for Gatepass</h1>
+            <p>Scan your student ID to begin your request.</p>
+          </div>
         </div>
 
         {/* Global message display */}
@@ -210,7 +200,7 @@ export default function StudentPage() {
             message.includes('Error') 
               ? 'bg-red-50 border-red-200 text-red-700'
               : 'bg-green-50 border-green-200 text-green-700'
-          }`}>
+          }`} role={message.includes('Error') ? 'alert' : 'status'} aria-live="polite">
             <div className="flex items-center space-x-2">
               {message.includes('Error') ? (
                 <X className="h-5 w-5" />
@@ -223,7 +213,7 @@ export default function StudentPage() {
         )}
 
         {!showForm && (
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <section className="student-start-panel">
             <FileText className="h-16 w-16 text-blue-600 mx-auto mb-4" />
             <button
               onClick={() => setShowScanner(true)}
@@ -233,17 +223,22 @@ export default function StudentPage() {
               <span>Start Gatepass Request</span>
             </button>
             
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg student-start-note">
               <p className="text-sm text-gray-600">
                 <strong>Note:</strong> You can also enter your Student ID manually if scanning doesn't work.
               </p>
             </div>
-          </div>
+            <div className="student-start-route">
+              <span className="route-caption">Your gatepass route</span>
+              <RequestRoute />
+              <p>Follow each step from student ID to an approved departure.</p>
+            </div>
+          </section>
         )}
 
         {showForm && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="student-workspace">
+            <section className="bg-white rounded-lg shadow-lg p-6 student-form-panel">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">Gatepass Request Form</h2>
                 <button
@@ -254,7 +249,7 @@ export default function StudentPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 student-request-form">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Student ID
@@ -271,6 +266,7 @@ export default function StudentPage() {
                       type="button"
                       onClick={() => setShowScanner(true)}
                       className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      aria-label="Scan student ID"
                     >
                       <User className="h-4 w-4" />
                     </button>
@@ -382,10 +378,10 @@ export default function StudentPage() {
                   )}
                 </button>
               </form>
-            </div>
+            </section>
 
             {showStatus && (
-              <div className="bg-white rounded-lg shadow-lg p-6">
+              <section className="bg-white rounded-lg shadow-lg p-6 student-status-panel">
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Gatepass Status</h2>
                 
                 {leaveRequests.length === 0 ? (
@@ -395,11 +391,11 @@ export default function StudentPage() {
                     <p className="text-gray-400 text-sm mt-2">Submit your first request using the form</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-3 student-request-list">
                     {leaveRequests.map((request) => (
                       <div
                         key={request.id}
-                        className={`p-4 rounded-lg border ${getStatusColor(request.status)}`}
+                        className={`p-4 rounded-lg border student-request student-request--${request.status.toLowerCase()}`}
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
@@ -410,6 +406,7 @@ export default function StudentPage() {
                             {new Date(request.leave_datetime).toLocaleDateString()}
                           </span>
                         </div>
+                        <RequestRoute status={request.status} />
                         <p className="text-sm mb-1">{request.description}</p>
                         <p className="text-xs">Section: {request.section} | Dept: {request.department}</p>
                         
@@ -433,7 +430,7 @@ export default function StudentPage() {
                         {request.status === 'Approved' && (
                           <div className="mt-3 p-3 bg-green-100 border border-green-300 rounded-lg">
                             <p className="text-green-800 font-medium text-sm">
-                              ✅ Gatepass Approved. You may proceed to the gate.
+                              Gatepass approved. You may proceed to the gate.
                             </p>
                           </div>
                         )}
@@ -441,7 +438,7 @@ export default function StudentPage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </section>
             )}
           </div>
         )}

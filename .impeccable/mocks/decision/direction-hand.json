@@ -1,0 +1,82 @@
+{
+  "title": "Choose the visual world",
+  "question": "Choose a visual system for the complete E-Gatepass experience. Existing student, administrator, guard, analytics, and scanner workflows remain unchanged.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Campus thresholds",
+      "kicker": "THE ROLL",
+      "lineage": "University campus architecture and its directional-sign systems",
+      "thesis": "Every request is a clear passage from intent to an authorized campus exit.",
+      "palette": ["#173C35", "#F3EFE3", "#BD7A45", "#D5A944"],
+      "materials": ["chalky limestone", "deep green enamel", "warm copper"],
+      "viewport": "A student workspace with role navigation, a focused request form, and a three-stop request-to-gate route showing its current status.",
+      "risk": "The route could compete with dense admin work unless it stays quiet outside status moments.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "role navigation", "x": 0, "y": 0, "w": 2, "h": 10, "accent": true}, {"label": "request task", "x": 3, "y": 1, "w": 6, "h": 8}, {"label": "request route", "x": 9, "y": 1, "w": 3, "h": 8, "accent": true}]}
+    },
+    {
+      "id": "model-pick",
+      "label": "The academic timetable",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Printed university timetables and academic calendars",
+      "thesis": "Time is the spine: every departure request reads as a dated event with a clear next state.",
+      "palette": ["#172944", "#F7F4EC", "#567E72", "#CA8E46"],
+      "materials": ["uncoated schedule paper", "ink-blue type", "calendar-color notation"],
+      "viewport": "A time-first application beside a dated request timeline; admin review and guard verification reuse the same chronology.",
+      "risk": "A timetable can overemphasize dates and feel too dense on a phone.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "role navigation", "x": 0, "y": 0, "w": 2, "h": 10, "accent": true}, {"label": "application", "x": 3, "y": 1, "w": 5, "h": 8}, {"label": "dated request timeline", "x": 9, "y": 1, "w": 3, "h": 8, "accent": true}]}
+    },
+    {
+      "id": "challenger-boarding",
+      "label": "The campus exit board",
+      "verdict": "competitive",
+      "lineage": "Boarding documents paired with live departure boards",
+      "thesis": "A gate-ready request stays in view as its decision changes.",
+      "palette": ["#142A2A", "#F5F0E4", "#E7B54A", "#C65B43"],
+      "materials": ["segmented document fields", "tabular figures", "one persistent alert color"],
+      "viewport": "The student sees a gate-ready request beside its approval state; guard actions retain the pass identity.",
+      "case": "The held-in-place status change clarifies the review-to-gate handoff, while travel cues are less specific to a campus.",
+      "risk": "Too literal a boarding-pass treatment could suggest airline features the product does not provide.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "role navigation", "x": 0, "y": 0, "w": 2, "h": 10, "accent": true}, {"label": "gatepass request", "x": 3, "y": 1, "w": 5, "h": 8}, {"label": "live approval state", "x": 9, "y": 1, "w": 3, "h": 8, "accent": true}]}
+    },
+    {
+      "id": "challenger-map",
+      "label": "Campus route notation",
+      "verdict": "competitive",
+      "lineage": "Campus directories and wayfinding maps",
+      "thesis": "A single marked path makes each request's next step obvious.",
+      "palette": ["#F5F0E2", "#24392E", "#5A8B66", "#7958A5"],
+      "materials": ["wayfinding color keys", "fine route linework", "numbered route markers"],
+      "viewport": "Role-specific work areas follow the request route, with its active step marked and labeled in text.",
+      "case": "Campus wayfinding fits the student's setting; the route must describe workflow and not invent a geographic map.",
+      "risk": "A geographic interpretation could imply location features that do not exist.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "role navigation", "x": 0, "y": 0, "w": 2, "h": 10, "accent": true}, {"label": "request task", "x": 3, "y": 1, "w": 6, "h": 8}, {"label": "workflow route", "x": 9, "y": 1, "w": 3, "h": 8, "accent": true}]}
+    },
+    {
+      "id": "challenger-density",
+      "label": "Disciplined information grid",
+      "verdict": "declined",
+      "lineage": "High-density service-site layouts",
+      "thesis": "A precise module grid puts dense request information into a predictable scan order.",
+      "palette": ["#F7F7F2", "#1F2928", "#2E7568", "#B6543C"],
+      "materials": ["compact typographic hierarchy", "strong column rhythm", "small purposeful color cues"],
+      "viewport": "A clearly labeled request list with predictable columns and actions, becoming roomy rows on mobile.",
+      "case": "The grid discipline transfers, but crowded modules weaken the confirmed priority of mobile ease.",
+      "kept": "A strict scanning order for dense administrative information.",
+      "risk": "Compact modules would work against the confirmed mobile-usability priority.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "role navigation", "x": 0, "y": 0, "w": 2, "h": 10, "accent": true}, {"label": "request table", "x": 3, "y": 1, "w": 9, "h": 8}]}
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A conventional administration dashboard with neutral surfaces, summary tiles, and a familiar request table.",
+    "palette": ["#F8FAFC", "#17212B", "#326BC4"],
+    "materials": ["standard dashboard grid", "neutral surfaces", "status-color badges"],
+    "viewport": "A neutral shell, summary tiles, and a table of requests with approve and reject actions.",
+    "risk": "Clear but interchangeable with other admin dashboards.",
+    "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "top navigation", "x": 0, "y": 0, "w": 12, "h": 1, "accent": true}, {"label": "summary metrics", "x": 1, "y": 2, "w": 10, "h": 2}, {"label": "request table", "x": 1, "y": 5, "w": 10, "h": 4}]}
+  },
+  "steer": true
+}

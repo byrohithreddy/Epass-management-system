@@ -23,7 +23,7 @@ export default function AdminPage() {
     }
   }, [isAuthenticated, currentView]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginLoading(true);
     setMessage('');
@@ -32,18 +32,14 @@ export default function AdminPage() {
     const ADMIN_EMAIL = 'admin@gmail.com';
     const ADMIN_PASSWORD = 'admin@123';
 
-    try {
-      if (loginForm.email === ADMIN_EMAIL && loginForm.password === ADMIN_PASSWORD) {
-        setIsAuthenticated(true);
-        setMessage('Login successful!');
-      } else {
-        setMessage('Invalid email or password');
-      }
-    } catch (error: any) {
-      setMessage('Login failed');
-    } finally {
-      setLoginLoading(false);
+    if (loginForm.email === ADMIN_EMAIL && loginForm.password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      setMessage('Login successful!');
+    } else {
+      setMessage('Invalid email or password');
     }
+
+    setLoginLoading(false);
   };
 
   const handleLogout = async () => {
@@ -75,7 +71,7 @@ export default function AdminPage() {
 
   const updateLeaveStatus = async (id: string, status: 'Approved' | 'Rejected') => {
     try {
-      const updateData: any = { status };
+      const updateData: Partial<Pick<LeaveRequest, 'status' | 'approved_return_datetime' | 'admin_notes'>> = { status };
       
       // If editing, include the additional fields
       if (editingRequest === id) {
@@ -144,14 +140,15 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full mx-4 border border-gray-100">
-          <div className="text-center mb-8">
+      <div className="page-view page-view--admin-login admin-login-shell">
+        <section className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 border border-gray-100 admin-login-panel">
+          <div className="admin-login-heading">
             <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="h-8 w-8 text-blue-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
-            <p className="text-gray-600 mt-2">Access the E-Gatepass dashboard</p>
+            <span className="campus-wordmark">Administrator access</span>
+            <h1>Admin login</h1>
+            <p>Sign in to review gatepass requests and analytics.</p>
           </div>
 
           {message && (
@@ -159,7 +156,7 @@ export default function AdminPage() {
               message.includes('successful') 
                 ? 'bg-green-50 text-green-700 border-green-200'
                 : 'bg-red-50 text-red-700 border-red-200'
-            }`}>
+            }`} role="alert" aria-live="polite">
               {message}
             </div>
           )}
@@ -171,6 +168,7 @@ export default function AdminPage() {
               </label>
               <input
                 type="email"
+                  autoComplete="username"
                 value={loginForm.email}
                 onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
@@ -185,6 +183,7 @@ export default function AdminPage() {
               </label>
               <input
                 type="password"
+                  autoComplete="current-password"
                 value={loginForm.password}
                 onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
@@ -209,14 +208,14 @@ export default function AdminPage() {
             </button>
           </form>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg border admin-demo-note">
             <p className="text-xs text-gray-600 text-center">
               <strong>Demo Credentials:</strong><br />
               Email: admin@gmail.com<br />
               Password: admin@123
             </p>
           </div>
-        </div>
+        </section>
       </div>
     );
   }
@@ -226,26 +225,26 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
+    <div className="page-view page-view--admin">
+      <div className="page-container">
+        <div className="page-heading admin-heading">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="text-gray-600 mt-1">Manage E-Gatepass requests</p>
+            <h1>Admin dashboard</h1>
+            <p>Review student departures and update request decisions.</p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="heading-actions">
             <button
               onClick={() => setCurrentView('analytics')}
-              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg"
+              className="secondary-action"
             >
-              <BarChart3 className="h-4 w-4" />
+              <BarChart3 aria-hidden="true" className="h-4 w-4" />
               <span>Analytics</span>
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-md hover:shadow-lg"
+              className="quiet-action"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut aria-hidden="true" className="h-4 w-4" />
               <span>Logout</span>
             </button>
           </div>
@@ -256,26 +255,26 @@ export default function AdminPage() {
             message.includes('Error') 
               ? 'bg-red-50 text-red-700 border-red-200'
               : 'bg-green-50 text-green-700 border-green-200'
-          }`}>
+          }`} role={message.includes('Error') ? 'alert' : 'status'} aria-live="polite">
             {message}
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        <section className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 admin-requests-panel" aria-label="Gatepass requests">
           {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-500">Loading gatepass requests...</p>
+            <div className="p-8 text-center" role="status" aria-live="polite">
+              <div className="loading-marker mx-auto mb-4" aria-hidden="true"></div>
+              <p className="text-gray-500">Loading gatepass requests…</p>
             </div>
           ) : leaveRequests.length === 0 ? (
-            <div className="p-8 text-center">
+            <div className="p-8 text-center empty-state">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No gatepass requests to review</p>
-              <p className="text-gray-400 text-sm mt-2">New requests will appear here</p>
+              <p className="text-lg">No gatepass requests to review</p>
+              <p className="text-sm">New requests will appear here.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+            <div className="overflow-x-auto admin-table-wrap">
+              <table className="min-w-full divide-y divide-gray-200 request-table admin-table">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -456,7 +455,7 @@ export default function AdminPage() {
               </table>
             </div>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

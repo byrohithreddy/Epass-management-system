@@ -1,0 +1,35 @@
+{
+  "name": "Campus thresholds",
+  "seed": "ec41e52f",
+  "palette": {
+    "ground": "#f3efe3",
+    "surface": "#fffdf7",
+    "ink": "#1b2b26",
+    "inkSoft": "#45574e",
+    "inkMuted": "#64756c",
+    "evergreen": "#173c35",
+    "evergreenHover": "#24564b",
+    "copper": "#a85c39",
+    "brass": "#c49b49",
+    "line": "#ded9ca"
+  },
+  "typography": {
+    "body": "Segoe UI Variable, Segoe UI, system-ui, sans-serif",
+    "display": "Iowan Old Style, Palatino Linotype, Georgia, serif",
+    "numerals": "tabular"
+  },
+  "layout": {
+    "shellMaxWidth": "82rem",
+    "contentMaxWidth": "76rem",
+    "mobileBreakpoint": "760px",
+    "mobileWorkspaces": "single-column"
+  },
+  "principles": [
+    "Use labeled campus wayfinding for request progress, not geographic maps.",
+    "Reserve evergreen for primary actions and active navigation.",
+    "Use copper and brass as restrained wayfinding accents.",
+    "Keep each role workflow and its existing data behavior intact.",
+    "Respect keyboard focus, reduced motion, and small-screen use."
+  ],
+  "assets": []
+}

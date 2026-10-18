@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Shield, UserCheck, CheckCircle, Camera, User, AlertCircle } from 'lucide-react';
+import { UserCheck, CheckCircle, AlertCircle } from 'lucide-react';
 import BarcodeScanner from '../components/BarcodeScanner';
+import RequestRoute from '../components/RequestRoute';
 import { supabase, LeaveRequest } from '../lib/supabase';
 
 export default function GuardPage() {
@@ -92,12 +93,13 @@ export default function GuardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <Shield className="h-16 w-16 text-blue-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Guard Station</h1>
-          <p className="text-gray-600">Scan Student ID to Validate Gatepass</p>
+    <div className="page-view page-view--guard">
+      <div className="page-container">
+        <div className="page-heading">
+          <div>
+            <h1>Guard station</h1>
+            <p>Scan a student ID to validate today's gatepass.</p>
+          </div>
         </div>
 
         {/* Global message display */}
@@ -106,7 +108,7 @@ export default function GuardPage() {
             message.includes('Error') || message.includes('No approved')
               ? 'bg-red-50 text-red-700 border-red-200'
               : 'bg-green-50 text-green-700 border-green-200'
-          }`}>
+          }`} role={message.includes('Error') || message.includes('No approved') ? 'alert' : 'status'} aria-live="polite">
             <div className="flex items-center space-x-2">
               {message.includes('Error') || message.includes('No approved') ? (
                 <AlertCircle className="h-5 w-5" />
@@ -119,33 +121,41 @@ export default function GuardPage() {
         )}
 
         {!studentInfo && (
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <Camera className="h-16 w-16 text-gray-400 mx-auto mb-6" />
-            <div className="space-y-4">
+          <section className="guard-scan-panel">
+            <div className="guard-scan-copy">
+              <span className="campus-wordmark">Gate verification</span>
+              <h2>Check a pass before departure.</h2>
+              <p>Scan the barcode on the student's ID. If camera access is unavailable, enter the ID manually.</p>
+            </div>
+            <div className="guard-scan-action">
               <button
                 onClick={() => setShowScanner(true)}
                 disabled={loading}
-                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors inline-flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                className="primary-action disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <UserCheck className="h-5 w-5" />
+                <UserCheck aria-hidden="true" size={19} strokeWidth={1.7} />
                 <span>{loading ? 'Validating...' : 'Scan Student ID'}</span>
               </button>
               
-              <p className="text-gray-500 text-sm">
-                Position the student's ID barcode in front of the camera
-              </p>
+              <p className="guard-scan-hint">The rear camera is selected when available.</p>
             </div>
-          </div>
+          </section>
         )}
 
         {studentInfo && (
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center mb-6">
-              <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">Valid Gatepass Found</h2>
+          <section className="surface-panel guard-pass-panel" aria-labelledby="verified-pass-title">
+            <div className="panel-heading">
+              <div>
+                <span className="campus-wordmark">Gate verification</span>
+                <h2 id="verified-pass-title">Valid gatepass found</h2>
+              </div>
+              <span className="request-status request-status--approved">
+                <CheckCircle aria-hidden="true" size={17} />
+                {studentInfo.status}
+              </span>
             </div>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+            <div className="panel-body guard-pass-body">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -174,22 +184,20 @@ export default function GuardPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Status
                   </label>
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    {studentInfo.status}
-                  </span>
+                  <span className="request-status request-status--approved">{studentInfo.status}</span>
                 </div>
               </div>
 
-              <div className="mt-4">
+              <div className="guard-pass-description">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Description
                 </label>
                 <p className="text-gray-900">{studentInfo.description}</p>
               </div>
+              <RequestRoute status={studentInfo.status} />
             </div>
 
-            <div className="flex space-x-4">
+            <div className="guard-pass-actions">
               <button
                 onClick={handleCheckOut}
                 disabled={loading}
@@ -206,7 +214,7 @@ export default function GuardPage() {
                 Scan Another
               </button>
             </div>
-          </div>
+          </section>
         )}
 
         <BarcodeScanner

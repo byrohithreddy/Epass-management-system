@@ -17,17 +17,22 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [scanResult, setScanResult] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [manualInput, setManualInput] = useState('');
+  const [showManualInput, setShowManualInput] = useState(false);
   const readerRef = useRef<BrowserMultiFormatReader>();
 
   useEffect(() => {
-    if (isOpen) {
-      initializeCamera();
-    } else {
-      cleanup();
-    }
-    
-    return cleanup;
-  }, [isOpen]);
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isProcessing) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, isProcessing, onClose]);
 
   const cleanup = () => {
     console.log('Cleaning up camera resources...');
@@ -171,18 +176,19 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
         }
       );
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Camera start error:', err);
       setIsScanning(false);
       
-      if (err.name === 'NotAllowedError') {
+      const errorName = err instanceof DOMException ? err.name : '';
+      if (errorName === 'NotAllowedError') {
         setError('Camera permission denied. Please allow camera access and refresh the page.');
-      } else if (err.name === 'NotFoundError') {
+      } else if (errorName === 'NotFoundError') {
         setError('Camera not found. Please ensure your device has a working camera.');
-      } else if (err.name === 'NotReadableError') {
+      } else if (errorName === 'NotReadableError') {
         setError('Camera is being used by another application. Please close other apps and try again.');
       } else {
-        setError(`Camera error: ${err.message || 'Unknown error'}`);
+        setError(`Camera error: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
     }
   };
@@ -205,14 +211,14 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
     }, 500);
   };
 
-  const handleManualInput = () => {
-    const input = prompt('Enter Student ID manually:');
-    if (input && input.trim()) {
-      // Clean up camera before closing
-      cleanup();
-      onScanResult(input.trim());
-      onClose();
-    }
+  const handleManualInput = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedId = manualInput.trim();
+    if (!trimmedId) return;
+
+    cleanup();
+    onScanResult(trimmedId);
+    onClose();
   };
 
   const handleClose = () => {
@@ -221,25 +227,40 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
     onClose();
   };
 
+  const cameraActionsRef = useRef({ cleanup, initializeCamera });
+  cameraActionsRef.current = { cleanup, initializeCamera };
+
+  useEffect(() => {
+    if (isOpen) {
+      void cameraActionsRef.current.initializeCamera();
+    } else {
+      cameraActionsRef.current.cleanup();
+    }
+
+    return () => cameraActionsRef.current.cleanup();
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4 scanner-backdrop">
+      <section className="scanner-dialog" role="dialog" aria-modal="true" aria-labelledby="scanner-title">
+        <div className="scanner-titlebar">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-white">Scan Student ID</h3>
+            <h2 id="scanner-title">Scan student ID</h2>
             <button
               onClick={handleClose}
               className="text-white hover:text-gray-200 transition-colors p-1"
+              aria-label="Close scanner"
+              disabled={isProcessing}
             >
-              <X className="h-6 w-6" />
+              <X aria-hidden="true" className="h-6 w-6" />
             </button>
           </div>
         </div>
         
-        <div className="p-6 space-y-4">
-          <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+        <div className="scanner-content">
+          <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video scanner-video">
             <video
               ref={videoRef}
               className="w-full h-full object-cover"
@@ -250,7 +271,7 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
             
             {/* Scanning overlay */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="border-2 border-white border-dashed rounded-lg w-3/4 h-1/2 flex items-center justify-center">
+              <div className="scanner-target border-2 border-white border-dashed rounded-lg w-3/4 h-1/2 flex items-center justify-center" aria-live="polite">
                 {scanResult ? (
                   <div className="text-center text-white">
                     <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
@@ -277,7 +298,7 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
           </div>
           
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4" role="alert">
               <div className="flex items-start space-x-3">
                 <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                 <div>
@@ -290,7 +311,7 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
           
           <div className="space-y-3">
             {/* Camera controls */}
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               {devices.length > 1 && (
                 <button
                   onClick={switchCamera}
@@ -313,13 +334,41 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
             </div>
             
             {/* Manual input option */}
-            <button
-              onClick={handleManualInput}
-              disabled={isProcessing}
-              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              Enter ID Manually
-            </button>
+            {!showManualInput ? (
+              <button
+                type="button"
+                onClick={() => setShowManualInput(true)}
+                disabled={isProcessing}
+                className="w-full secondary-action disabled:opacity-50"
+              >
+                Enter ID Manually
+              </button>
+            ) : (
+              <form onSubmit={handleManualInput} className="scanner-manual-entry">
+                <label htmlFor="manual-student-id" className="text-sm font-medium">
+                  Student ID
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    id="manual-student-id"
+                    type="text"
+                    value={manualInput}
+                    onChange={(event) => setManualInput(event.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2"
+                    autoComplete="off"
+                    autoFocus
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={isProcessing || !manualInput.trim()}
+                    className="primary-action disabled:opacity-50"
+                  >
+                    Use student ID
+                  </button>
+                </div>
+              </form>
+            )}
             
             <button
               onClick={handleClose}
@@ -331,8 +380,8 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
           </div>
           
           {/* Instructions */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="text-blue-800 font-medium text-sm mb-2">Scanning Tips:</h4>
+          <div className="scanner-tips">
+            <h3>Scanning tips</h3>
             <ul className="text-blue-700 text-xs space-y-1">
               <li>• Hold the ID card steady within the frame</li>
               <li>• Ensure good lighting on the barcode</li>
@@ -340,9 +389,9 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
               <li>• Make sure the barcode is not blurry or damaged</li>
               <li>• Try the "Enter ID Manually" option if scanning fails</li>
             </ul>
-          </div>
         </div>
       </div>
+      </section>
     </div>
   );
 }
