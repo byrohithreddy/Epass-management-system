@@ -311,6 +311,8 @@ For licensing inquiries, institutional deployments, or commercial partnerships, 
 
 Third-party dependencies and services remain subject to their respective licenses and terms.
 
+---
+
 <div align="center">
 
 Designed & Architected by **Mushke Rohith Reddy**
