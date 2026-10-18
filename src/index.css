@@ -579,14 +579,20 @@ time {
 }
 
 .scanner-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
   overflow-y: auto;
-  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
-  background: rgb(16 31 26 / 80%);
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background: rgb(16 31 26 / 72%);
   overscroll-behavior: contain;
 }
 
 .scanner-dialog {
-  width: min(100%, 36rem);
+  width: min(100%, 34rem);
+  max-height: calc(100vh - 2rem);
   max-height: calc(100dvh - 2rem);
   margin: auto;
   overflow-y: auto;
@@ -594,6 +600,7 @@ time {
   border-radius: 1.25rem;
   background: var(--surface);
   box-shadow: 0 24px 60px rgb(14 29 23 / 24%);
+  overscroll-behavior: contain;
 }
 
 .scanner-titlebar {
@@ -616,6 +623,7 @@ time {
 
 .scanner-video {
   min-height: 13rem;
+  max-height: 15rem;
   overflow: hidden;
   border-radius: 0.9rem;
   background: #17231f;
@@ -627,21 +635,22 @@ time {
 }
 
 .scanner-tips {
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 0.9rem;
   border-radius: 0.7rem;
   color: var(--ink-soft);
   background: #eef0e7;
   font-size: 0.85rem;
 }
 
-.scanner-tips h3 {
-  margin: 0 0 0.35rem;
+.scanner-tips summary {
   color: var(--ink);
   font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .scanner-tips ul {
-  margin: 0;
+  margin: 0.65rem 0 0;
   padding-left: 1.1rem;
 }
 
@@ -1285,8 +1294,8 @@ time {
   }
 
   .scanner-backdrop {
-    padding-right: 0.5rem;
-    padding-left: 0.5rem;
+    padding-right: max(0.65rem, env(safe-area-inset-right));
+    padding-left: max(0.65rem, env(safe-area-inset-left));
   }
 }
 

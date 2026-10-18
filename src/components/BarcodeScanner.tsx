@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { Camera, X, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -20,6 +21,16 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
   const [manualInput, setManualInput] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
   const readerRef = useRef<BrowserMultiFormatReader>();
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -242,9 +253,19 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4 scanner-backdrop">
-      <section className="scanner-dialog" role="dialog" aria-modal="true" aria-labelledby="scanner-title">
+  return createPortal(
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50 p-4 scanner-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isProcessing) handleClose();
+      }}
+    >
+      <section
+        className="scanner-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scanner-title"
+      >
         <div className="scanner-titlebar">
           <div className="flex justify-between items-center">
             <h2 id="scanner-title">Scan student ID</h2>
@@ -370,18 +391,10 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
               </form>
             )}
             
-            <button
-              onClick={handleClose}
-              disabled={isProcessing}
-              className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
           </div>
           
-          {/* Instructions */}
-          <div className="scanner-tips">
-            <h3>Scanning tips</h3>
+          <details className="scanner-tips">
+            <summary>Scanning tips</summary>
             <ul className="text-blue-700 text-xs space-y-1">
               <li>• Hold the ID card steady within the frame</li>
               <li>• Ensure good lighting on the barcode</li>
@@ -389,9 +402,10 @@ export default function BarcodeScanner({ onScanResult, onClose, isOpen }: Barcod
               <li>• Make sure the barcode is not blurry or damaged</li>
               <li>• Try the "Enter ID Manually" option if scanning fails</li>
             </ul>
-        </div>
+          </details>
       </div>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
