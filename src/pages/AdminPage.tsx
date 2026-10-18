@@ -152,7 +152,7 @@ export default function AdminPage() {
           </div>
 
           {message && (
-            <div className={`mb-4 p-4 rounded-lg border ${
+            <div className={`mb-4 p-4 rounded-lg border status-banner ${
               message.includes('successful') 
                 ? 'bg-green-50 text-green-700 border-green-200'
                 : 'bg-red-50 text-red-700 border-red-200'
@@ -251,7 +251,7 @@ export default function AdminPage() {
         </div>
 
         {message && (
-          <div className={`mb-6 p-4 rounded-lg border ${
+          <div className={`mb-6 p-4 rounded-lg border status-banner ${
             message.includes('Error') 
               ? 'bg-red-50 text-red-700 border-red-200'
               : 'bg-green-50 text-green-700 border-green-200'
@@ -294,7 +294,7 @@ export default function AdminPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-200 stagger-group">
                   {leaveRequests.map((request) => {
                     const pendingDays = getPendingDays(request.submitted_at);
                     const isEditing = editingRequest === request.id;

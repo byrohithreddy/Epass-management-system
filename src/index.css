@@ -23,7 +23,14 @@
   --warning: #805a1c;
   --danger: #9c453d;
   --info: #3c6761;
-  --ease-campus: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-campus: var(--ease-out);
+  --duration-press: 160ms;
+  --duration-fast: 160ms;
+  --duration-ui: 220ms;
+  --duration-panel: 240ms;
   --focus-ring: 0 0 0 3px #c49b4970;
 }
 
@@ -97,7 +104,7 @@ a {
   color: white;
   background: var(--evergreen);
   transform: translateY(-160%);
-  transition: transform 360ms var(--ease-campus);
+  transition: transform 180ms var(--ease-out);
 }
 
 .skip-link:focus {
@@ -194,18 +201,20 @@ a {
   font-size: 0.9rem;
   font-weight: 600;
   transition:
-    color 420ms var(--ease-campus),
-    background-color 420ms var(--ease-campus),
-    transform 420ms var(--ease-campus);
+    color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms var(--ease-out);
 }
 
-.role-link:hover {
-  color: var(--evergreen);
-  background: #e8eadf;
+@media (hover: hover) and (pointer: fine) {
+  .role-link:hover {
+    color: var(--evergreen);
+    background: #e8eadf;
+  }
 }
 
 .role-link:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .role-link.is-active {
@@ -220,13 +229,13 @@ a {
 }
 
 .page-transition {
-  animation: page-arrive 680ms var(--ease-campus) both;
+  animation: page-arrive 220ms var(--ease-out) both;
 }
 
 @keyframes page-arrive {
   from {
     opacity: 0;
-    transform: translateY(0.7rem);
+    transform: translateY(6px);
   }
 
   to {
@@ -351,9 +360,10 @@ a {
   border-radius: 50%;
   background: #f8f5ec;
   transition:
-    background-color 500ms var(--ease-campus),
-    border-color 500ms var(--ease-campus),
-    transform 500ms var(--ease-campus);
+    background-color 200ms ease,
+    border-color 200ms ease,
+    transform 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
 }
 
 .waypoint-stop.is-complete .waypoint-marker,
@@ -364,7 +374,7 @@ a {
 
 .waypoint-stop.is-current .waypoint-marker {
   outline: 4px solid #c49b4938;
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 .waypoint-stop strong {
@@ -438,19 +448,36 @@ input,
 select,
 textarea,
 a {
-  transition-timing-function: var(--ease-campus);
+  transition-timing-function: var(--ease-out);
 }
 
-button,
-a,
+button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 input,
 select,
 textarea {
-  transition-duration: 260ms;
-}
-
-button:active {
-  transform: scale(0.985);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms var(--ease-out),
+    background-color 160ms ease;
 }
 
 .page-view button {
@@ -471,11 +498,11 @@ button:active {
   font-weight: 650;
   text-decoration: none;
   transition:
-    color 400ms var(--ease-campus),
-    background-color 400ms var(--ease-campus),
-    border-color 400ms var(--ease-campus),
-    transform 400ms var(--ease-campus),
-    box-shadow 400ms var(--ease-campus);
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
 }
 
 .primary-action {
@@ -484,9 +511,16 @@ button:active {
   box-shadow: 0 5px 12px rgb(23 60 53 / 16%);
 }
 
-.primary-action:hover {
-  background: var(--evergreen-hover);
-  box-shadow: 0 8px 18px rgb(23 60 53 / 18%);
+@media (hover: hover) and (pointer: fine) {
+  .primary-action:hover {
+    background: var(--evergreen-hover);
+    box-shadow: 0 8px 18px rgb(23 60 53 / 18%);
+    transform: translateY(-1px);
+  }
+}
+
+.primary-action:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .secondary-action {
@@ -495,9 +529,16 @@ button:active {
   background: #fffdf7;
 }
 
-.secondary-action:hover {
-  border-color: var(--evergreen);
-  background: #eff1e8;
+@media (hover: hover) and (pointer: fine) {
+  .secondary-action:hover {
+    border-color: var(--evergreen);
+    background: #eff1e8;
+    transform: translateY(-1px);
+  }
+}
+
+.secondary-action:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .quiet-action {
@@ -505,9 +546,16 @@ button:active {
   background: #ebe9df;
 }
 
-.quiet-action:hover {
-  color: var(--ink);
-  background: #dedfd3;
+@media (hover: hover) and (pointer: fine) {
+  .quiet-action:hover {
+    color: var(--ink);
+    background: #dedfd3;
+    transform: translateY(-1px);
+  }
+}
+
+.quiet-action:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .empty-state {
@@ -558,11 +606,13 @@ time {
 }
 
 .request-table tbody tr {
-  transition: background-color 360ms var(--ease-campus);
+  transition: background-color 160ms ease;
 }
 
-.request-table tbody tr:hover {
-  background: #f7f5ee;
+@media (hover: hover) and (pointer: fine) {
+  .request-table tbody tr:hover {
+    background: #f7f5ee;
+  }
 }
 
 .admin-login-shell {
@@ -587,7 +637,19 @@ time {
   overflow-y: auto;
   padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
   background: rgb(16 31 26 / 72%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   overscroll-behavior: contain;
+  animation: backdrop-enter 220ms var(--ease-out) both;
+}
+
+@keyframes backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .scanner-dialog {
@@ -601,6 +663,19 @@ time {
   background: var(--surface);
   box-shadow: 0 24px 60px rgb(14 29 23 / 24%);
   overscroll-behavior: contain;
+  transform-origin: center;
+  animation: modal-enter 240ms var(--ease-out) both;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .scanner-titlebar {
@@ -629,6 +704,22 @@ time {
   background: #17231f;
 }
 
+.scanner-target {
+  transition: transform 160ms var(--ease-out), border-color 160ms ease;
+  animation: scanner-pulse 2s ease-in-out infinite;
+}
+
+@keyframes scanner-pulse {
+  0%, 100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
 .scanner-manual-entry {
   display: grid;
   gap: 0.65rem;
@@ -640,6 +731,7 @@ time {
   color: var(--ink-soft);
   background: #eef0e7;
   font-size: 0.85rem;
+  transition: background-color 160ms ease;
 }
 
 .scanner-tips summary {
@@ -647,6 +739,11 @@ time {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.scanner-tips[open] {
+  background: #e6e9de;
 }
 
 .scanner-tips ul {
@@ -808,19 +905,23 @@ time {
 .shadow-xl,
 .shadow-2xl {
   box-shadow: 0 12px 26px rgb(35 55 45 / 7%);
+  transition: box-shadow 160ms var(--ease-out), transform 160ms var(--ease-out);
 }
 
-.shadow-lg:hover,
-.shadow-md:hover,
-.shadow-xl:hover {
-  box-shadow: 0 16px 32px rgb(35 55 45 / 11%);
+@media (hover: hover) and (pointer: fine) {
+  .shadow-lg:hover,
+  .shadow-md:hover,
+  .shadow-xl:hover {
+    box-shadow: 0 16px 32px rgb(35 55 45 / 11%);
+  }
 }
 
 .transition-all,
 .transition-colors,
 .transition-shadow,
 .transition-transform {
-  transition-timing-function: var(--ease-campus);
+  transition-timing-function: var(--ease-out);
+  transition-duration: 160ms;
 }
 
 .focus\:ring-blue-500:focus {
@@ -828,8 +929,84 @@ time {
 }
 
 .animate-spin {
-  animation-duration: 900ms;
+  animation-duration: 750ms;
   animation-timing-function: linear;
+}
+
+/* Emil Kowalski's stagger recipe (30-60ms stagger) */
+.stagger-group > * {
+  animation: item-arrive 220ms var(--ease-out) both;
+}
+.stagger-group > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-group > *:nth-child(2) { animation-delay: 35ms; }
+.stagger-group > *:nth-child(3) { animation-delay: 70ms; }
+.stagger-group > *:nth-child(4) { animation-delay: 105ms; }
+.stagger-group > *:nth-child(5) { animation-delay: 140ms; }
+.stagger-group > *:nth-child(6) { animation-delay: 175ms; }
+.stagger-group > *:nth-child(n+7) { animation-delay: 210ms; }
+
+@keyframes item-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Status banner / toast recipe */
+.status-banner {
+  animation: banner-arrive 220ms var(--ease-out) both;
+}
+
+@keyframes banner-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Surface panels arrival */
+.surface-panel,
+.student-start-panel,
+.guard-scan-panel,
+.admin-login-panel,
+.student-form-panel,
+.student-status-panel,
+.guard-pass-panel {
+  animation: panel-arrive 220ms var(--ease-out) both;
+}
+
+@keyframes panel-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.99) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Metric card interaction */
+.metric-card {
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
+    border-color 160ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgb(35 55 45 / 10%);
+  }
 }
 
 .student-start-panel,
@@ -1002,11 +1179,13 @@ time {
 }
 
 .admin-table tbody tr {
-  transition: background-color 260ms var(--ease-campus);
+  transition: background-color 160ms ease;
 }
 
-.admin-table tbody tr:hover {
-  background: #f8f6ef;
+@media (hover: hover) and (pointer: fine) {
+  .admin-table tbody tr:hover {
+    background: #f8f6ef;
+  }
 }
 
 .guard-scan-panel {
@@ -1139,6 +1318,7 @@ time {
 
 .analytics-bar-fill {
   transform-origin: left center;
+  transition: transform 280ms var(--ease-out);
 }
 
 @media (max-width: 760px) {
@@ -1304,8 +1484,43 @@ time {
   *::before,
   *::after {
     scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
+    animation-duration: 150ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 150ms !important;
+  }
+
+  /* Drop positional shifts/transforms, retain gentle opacity/color fades */
+  .page-transition,
+  .surface-panel,
+  .student-start-panel,
+  .guard-scan-panel,
+  .admin-login-panel,
+  .student-form-panel,
+  .student-status-panel,
+  .guard-pass-panel,
+  .scanner-dialog,
+  .status-banner,
+  .stagger-group > *,
+  button:active,
+  .role-link:active,
+  .primary-action:active,
+  .secondary-action:active,
+  .quiet-action:active,
+  .metric-card:hover {
+    transform: none !important;
+    animation-name: gentle-fade !important;
+  }
+
+  @keyframes gentle-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .scanner-target {
+    animation: none !important;
   }
 }

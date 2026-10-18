@@ -196,7 +196,7 @@ export default function StudentPage() {
 
         {/* Global message display */}
         {message && (
-          <div className={`mb-6 p-4 rounded-lg border ${
+          <div className={`mb-6 p-4 rounded-lg border status-banner ${
             message.includes('Error') 
               ? 'bg-red-50 border-red-200 text-red-700'
               : 'bg-green-50 border-green-200 text-green-700'
@@ -391,7 +391,7 @@ export default function StudentPage() {
                     <p className="text-gray-400 text-sm mt-2">Submit your first request using the form</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 student-request-list">
+                  <div className="space-y-3 student-request-list stagger-group">
                     {leaveRequests.map((request) => (
                       <div
                         key={request.id}

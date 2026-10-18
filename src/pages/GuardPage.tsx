@@ -104,7 +104,7 @@ export default function GuardPage() {
 
         {/* Global message display */}
         {message && (
-          <div className={`mb-6 p-4 rounded-lg border ${
+          <div className={`mb-6 p-4 rounded-lg border status-banner ${
             message.includes('Error') || message.includes('No approved')
               ? 'bg-red-50 text-red-700 border-red-200'
               : 'bg-green-50 text-green-700 border-green-200'

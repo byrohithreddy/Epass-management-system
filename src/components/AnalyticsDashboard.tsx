@@ -259,7 +259,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 analytics-stats">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 analytics-stats stagger-group">
           <StatCard
             title="Total Requests"
             value={analytics.totalRequests}
@@ -290,7 +290,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
         </div>
 
         {/* Status Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 analytics-panels">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 analytics-panels stagger-group">
           <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 analytics-panel">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
@@ -351,7 +351,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
         </div>
 
         {/* Department Stats and Daily Trends */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 analytics-panels">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 analytics-panels stagger-group">
           <section className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 analytics-panel">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Building className="h-5 w-5 mr-2 text-indigo-600" />
@@ -390,7 +390,7 @@ export default function AnalyticsDashboard({ onBack }: AnalyticsDashboardProps) 
                     <div className="flex-1 mx-3">
                       <div className="bg-gray-200 rounded-full h-2">
                         <div 
-                          className="bg-green-500 h-2 rounded-full transition-transform duration-500 analytics-bar-fill"
+                          className="bg-green-500 h-2 rounded-full analytics-bar-fill"
                           style={{ transform: `scaleX(${width / 100})` }}
                         ></div>
                       </div>
